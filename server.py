@@ -17,8 +17,8 @@ def sysinfo():
 	infos = ""
 	if 'linux' in sys.platform:
 		import psutil
-		infos += "CPU : %d%\n" % (psutil.cpu_percent())
-		infos += "Mem : %d%\n" % (psutil.virtual_memory()[2])
+		infos += "CPU : %d%%\n" % (psutil.cpu_percent())
+		infos += "Mem : %d%%\n" % (psutil.virtual_memory()[2])
 	infos_remote = ""
 	try:
 		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text

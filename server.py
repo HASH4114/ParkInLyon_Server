@@ -5,7 +5,6 @@ import sys
 import requests
 import json
 import functions
-import re
 from flask import Flask,request,jsonify
 
 app = Flask(__name__)
@@ -33,12 +32,14 @@ def sysinfo():
 
 @app.route('/parkings/list')
 def listParking():
-	
-	point = request.args.get('fromPlace', '')
-	lat = float(departurePoint.split(',')[0])
-	lon = float(departurePoint.split(',')[1])
-	
-	return closestParking(lat,lon)
+	coords = request.args.get('fromPlace','')
+	parkings = []
+	x,y = parse_commas(coords)
+	if x == 'err':
+		return "Erreur Argument !"
+	parkings = closestParking(x,y)
+	return jsonify(results=parkings)
+
 	
 	
 @app.route('/plan')
@@ -46,11 +47,12 @@ def route():
 	itiList = []
 	
 	departurePoint = request.args.get('fromPlace', '')
-	depLat = float(departurePoint.split(',')[0])
-	depLon = float(departurePoint.split(',')[1])
+	depLat,depLon = parse_commas(departurePoint)
 	endPoint = request.args.get('toPlace', '')
-	endLat = float(departurePoint.split(',')[0])
-	endLon = float(departurePoint.split(',')[1])
+	endLat,endLon = parse_commas(departurePoint)
+
+	if 'err' == depLat or 'err' == endLat:
+		return "Erreur Argument !"
 
 	parkingList = functions.closestParking(depLat, depLon)
 	
@@ -62,45 +64,9 @@ def route():
 	
 	#Compare the itineraries
 	
-	return flask.jsonify(itiList)
-	
-
-	
-def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
-	
-	headers = {'Accept': 'application/json'}
-	url = "http://92.222.74.70/otp/routers/default/plan?fromPlace=" + str(start[lat]) + ",%20" + str(start[lon]) + "&toPlace=" + str(end[lat]) + ",%20" + str(end[lon])
-	
-	if requestType == "toPark":
-		url += "&mode=CAR"
-	
-	return json.loads(requests.get(url, headers=headers).text)
-
-def getCoordinates(point):
-	return 1,2
+	return jsonify(itiList)
 
 
-'''Car itinerary to the closest non-full parking:
-	/parkings?fromPlace=(lat,lon)
-Params :
-	fromPlace
-	Optionnal :
-		checkIfFull (default to yes, ex for no : the client wants to find a parking for later)
-'''
-@app.route('/parkings')
-def API_parkings():
-	# checkIfFull API integration for 4 parkings "relai"
-	coords = request.args.get('fromPlace','')
-	parkings = []
-	try :
-		searchObj = re.search( r'\(\s*(-?[0-9]+\.[0-9]+)\s*,\s*(-?[0-9]+\.[0-9]+)\s*\)\s*', coords)
-		x = float(searchObj.group(1))
-		y = float(searchObj.group(2))
-	except:
-		logger.warn("API_parkings regex fail !")
-		return "Erreur argument !"
-	parkings = closestParking(x,y)
-	return jsonify(results=parkings)
 
 if __name__ == '__main__':
 	logger.info("Starting ...")

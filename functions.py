@@ -5,6 +5,7 @@ from config import *
 import json
 import pprint
 import sys
+import re
 
 def closestParking(lat,lon,nb_parking=3):
 	lat,lon = float(lat),float(lon)
@@ -31,6 +32,27 @@ def getAllParkings():
 	finally:
 		if con:
 			con.close()
+
+# parse (a,b) in string
+def parse_commas(string_param):
+	try :
+		searchObj = re.search( r'\(\s*(-?[0-9]+\.[0-9]+)\s*,\s*(-?[0-9]+\.[0-9]+)\s*\)\s*', string_param)
+		return [float(searchObj.group(1)),float(searchObj.group(2))]
+	except:
+		logger.warn("Regex fail !")
+		return ['err','err']
+
+def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
+	
+	headers = {'Accept': 'application/json'}
+	params = {'fromPlace': str(start[lat]) + ",%20" + str(start[lon]), 'toPlace': str(end[lat]) + ",%20" + str(end[lon])}
+	url = "http://92.222.74.70/otp/routers/default/plan"
+	
+	if requestType == "toPark":
+		params['mode'] = 'CAR'
+	
+	return json.loads(requests.get(url,params=params, headers=headers).text)
+
 
 def merge(tabJson):
 	#Main objects

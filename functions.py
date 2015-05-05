@@ -1,6 +1,6 @@
 ﻿import MySQLdb as mdb
 # Care MySQLdb output is latin1 (iso-8859-1) instead of utf8
-from math import sqrt,sin,cos,atan2
+from math import sqrt,sin,cos,atan2,pi
 from config import *
 import json
 import pprint
@@ -19,6 +19,7 @@ def closestParking(lat,lon,nb_parking=3):
 
 # calcul diff lat lon as km
 def diff_km(lat_0,lon_0,lat_1,lon_1):
+	lat_0,lon_0,lat_1,lon_1 = [((coord * pi) /180) for coord in [lat_0,lon_0,lat_1,lon_1]]
 	dlon = lon_1-lon_0
 	dlat = lat_1-lat_0
 	a = (sin(dlat/2)**2) + cos(lat_0) * cos(lat_1) * (sin(dlon/2)**2)

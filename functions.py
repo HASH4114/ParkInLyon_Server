@@ -1,4 +1,4 @@
-﻿import MySQLdb as mdb
+﻿#import MySQLdb as mdb
 # Care MySQLdb output is latin1 instead of utf8
 from math import sqrt
 from config import *
@@ -11,7 +11,7 @@ def closestParking(lat,lon,nb_parking=3):
 	parkings = getAllParkings()
 	parks_ordo = []
 	for park in parkings:
-		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0].encode('utf8'),'name': park[1].encode('utf8'),'posx': park[2].encode('utf8'),'posy': park[3].encode('utf8')})
+		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1].encode('utf8'),'posx': park[2],'posy': park[3]})
 	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
 	return parks_ordo[:nb_parking]
 
@@ -19,6 +19,7 @@ def closestParking(lat,lon,nb_parking=3):
 
 #return an array
 def getAllParkings():
+	con = None
 	try:
 		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)
 		cur = con.cursor()
@@ -60,7 +61,7 @@ def merge(tabJson):
 
 
 	for i in range(1,len(tabJson)):
-		imported_json.append(tabJson[i])
+		imported_json.append(json.loads(tabJson[i]))
 
 
 	for i in range(0, len(imported_json)):
@@ -111,6 +112,6 @@ def merge(tabJson):
 	merged_routes_json.append(route_summary_object)
 
 	#Registering
-	with open('merged_routes.json', 'w') as f:
-		f.write(json.dumps(merged_routes_json))
+	return json.dumps(merged_routes_json)
+	
 

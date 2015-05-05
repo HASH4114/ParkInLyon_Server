@@ -13,9 +13,6 @@ app = Flask(__name__)
 
 @app.route('/')
 def running():
-	i = {'i': 2 }
-	resp = Response(response=i, status=200, mimetype="application/json")
-	
 	return 'Running !'
 
 @app.route('/sysinfo')
@@ -24,7 +21,6 @@ def sysinfo():
 	if 'linux' in sys.platform:
 		# todo
 		infos_remote = ""
-
 		import psutil
 		infos += "CPU : %d%%\n" % (psutil.cpu_percent())
 		infos += "Mem : %d%%\n" % (psutil.virtual_memory()[2])
@@ -74,12 +70,12 @@ def route():
 def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
 	
 	headers = {'Accept': 'application/json'}
-	url = "http://92.222.74.70/otp/routers/default/plan?fromPlace=" + str(start[lat]) + ",%20" + str(start[lon]) + "&toPlace=" + str(end[lat]) + ",%20" + str(end[lon])
-	
+	params = { "fromPlace": str(depLat) + "," + str(depLon), "toPlace": str(endLat) + "," + str(endLon)}
 	if requestType == "toPark":
-		url += "&mode=CAR"
-	
-	return json.loads(requests.get(url, headers=headers).text)
+		params["mode"] = "car"	
+	url = "http://92.222.74.70/otp/routers/default/plan"
+
+	return requests.get(url, headers=headers, params = params).text
 
 def getCoordinates(point):
 	return 1,2
@@ -117,10 +113,11 @@ if __name__ == '__main__':
 	logger.info("Starting ...")
 	if not URL_OPEN_TRIP_PLANNER:
 		logger.error("Please specify URL_OPEN_TRIP_PLANNER in config.py")
-	app.run(host='0.0.0.0',port=8080)
+	app.run(debug = True, host='0.0.0.0',port=8080)
 
 '''
 API du Serveur:
 
 
 
+'''

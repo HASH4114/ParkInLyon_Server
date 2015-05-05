@@ -27,6 +27,7 @@ def diff_km(lat_0,lon_0,lat_1,lon_1):
 
 # return an array
 def getAllParkings():
+	con = None
 	try:
 		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)
 		cur = con.cursor()
@@ -89,7 +90,7 @@ def merge(tabJson):
 
 
 	for i in range(1,len(tabJson)):
-		imported_json.append(tabJson[i])
+		imported_json.append(json.loads(tabJson[i]))
 
 
 	for i in range(0, len(imported_json)):
@@ -140,6 +141,6 @@ def merge(tabJson):
 	merged_routes_json.append(route_summary_object)
 
 	#Registering
-	with open('merged_routes.json', 'w') as f:
-		f.write(json.dumps(merged_routes_json))
+	return json.dumps(merged_routes_json)
+	
 

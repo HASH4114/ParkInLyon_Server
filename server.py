@@ -66,6 +66,15 @@ def route():
 	
 	return jsonify(itiList)
 
+def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
+	
+	headers = {'Accept': 'application/json'}
+	params = { "fromPlace": str(depLat) + "," + str(depLon), "toPlace": str(endLat) + "," + str(endLon)}
+	if requestType == "toPark":
+		params["mode"] = "car"	
+	url = "http://92.222.74.70/otp/routers/default/plan"
+
+	return requests.get(url, headers=headers, params = params).text
 
 
 if __name__ == '__main__':
@@ -76,3 +85,4 @@ if __name__ == '__main__':
 		app.run(host='0.0.0.0',port=8080,debug=True)
 	else:
 		app.run(host='0.0.0.0',port=8080)
+

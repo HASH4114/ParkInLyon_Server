@@ -1,17 +1,20 @@
-﻿#import MySQLdb as mdb
-# Care MySQLdb output is latin1 instead of utf8
+﻿import MySQLdb as mdb
+# Care MySQLdb output is latin1 (iso-8859-1) instead of utf8
 from math import sqrt
 from config import *
 import json
 import pprint
 import sys
+import re
+import logger
 
 def closestParking(lat,lon,nb_parking=3):
 	lat,lon = float(lat),float(lon)
 	parkings = getAllParkings()
 	parks_ordo = []
 	for park in parkings:
-		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1].encode('utf8'),'posx': park[2],'posy': park[3]})
+
+		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
 	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
 	return parks_ordo[:nb_parking]
 
@@ -32,6 +35,27 @@ def getAllParkings():
 	finally:
 		if con:
 			con.close()
+
+# parse (a,b) in string
+def parse_commas(string_param):
+	try :
+		searchObj = re.search( r'\(\s*(-?[0-9]+\.[0-9]+)\s*,\s*(-?[0-9]+\.[0-9]+)\s*\)\s*', string_param)
+		return [float(searchObj.group(1)),float(searchObj.group(2))]
+	except:
+		logger.warn("Regex fail !")
+		return ['err','err']
+
+def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
+	
+	headers = {'Accept': 'application/json'}
+	params = {'fromPlace': str(start[lat]) + ",%20" + str(start[lon]), 'toPlace': str(end[lat]) + ",%20" + str(end[lon])}
+	url = "http://92.222.74.70/otp/routers/default/plan"
+	
+	if requestType == "toPark":
+		params['mode'] = 'CAR'
+	
+	return json.loads(requests.get(url,params=params, headers=headers).text)
+
 
 def merge(tabJson):
 	#Main objects

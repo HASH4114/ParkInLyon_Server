@@ -5,7 +5,6 @@ import sys
 import requests
 import json
 import functions
-import re
 from flask import Flask,request,jsonify
 
 app = Flask(__name__)
@@ -19,11 +18,10 @@ def running():
 def sysinfo():
 	infos = ""
 	if 'linux' in sys.platform:
-		# todo
-		infos_remote = ""
 		import psutil
-		infos += "CPU : %d%%\n" % (psutil.cpu_percent())
-		infos += "Mem : %d%%\n" % (psutil.virtual_memory()[2])
+		infos += "CPU : %d%%<br />" % (psutil.cpu_percent())
+		infos += "Mem : %d%%<br />" % (psutil.virtual_memory()[2])
+	infos_remote = ""
 	try:
 		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text
 	except:
@@ -34,12 +32,14 @@ def sysinfo():
 
 @app.route('/parkings/list')
 def listParking():
-	
-	point = request.args.get('fromPlace', '')
-	lat = float(departurePoint.split(',')[0])
-	lon = float(departurePoint.split(',')[1])
-	
-	return closestParking(lat,lon)
+	coords = request.args.get('fromPlace','')
+	parkings = []
+	x,y = parse_commas(coords)
+	if x == 'err':
+		return "Erreur Argument !"
+	parkings = closestParking(x,y)
+	return jsonify(results=parkings)
+
 	
 	
 @app.route('/plan')
@@ -47,11 +47,12 @@ def route():
 	itiList = []
 	
 	departurePoint = request.args.get('fromPlace', '')
-	depLat = float(departurePoint.split(',')[0])
-	depLon = float(departurePoint.split(',')[1])
+	depLat,depLon = parse_commas(departurePoint)
 	endPoint = request.args.get('toPlace', '')
-	endLat = float(departurePoint.split(',')[0])
-	endLon = float(departurePoint.split(',')[1])
+	endLat,endLon = parse_commas(departurePoint)
+
+	if 'err' == depLat or 'err' == endLat:
+		return "Erreur Argument !"
 
 	parkingList = functions.closestParking(depLat, depLon)
 	
@@ -63,10 +64,8 @@ def route():
 	
 	#Compare the itineraries
 	
-	return flask.jsonify(itiList)
-	
+	return jsonify(itiList)
 
-	
 def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
 	
 	headers = {'Accept': 'application/json'}
@@ -77,43 +76,15 @@ def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
 
 	return requests.get(url, headers=headers, params = params).text
 
-def getCoordinates(point):
-	return 1,2
-	
-	
-#todo
-@app.route('/aaa/<username>')
-def show_user_profile(username):
-	# API OTP : 
-	return 'User %s' % username
-
-'''Car itinerary to the closest non-full parking:
-	/parkings?fromPlace=(lat,lon)
-Params :
-	fromPlace
-	Optionnal :
-		checkIfFull (default to yes, ex for no : the client wants to find a parking for later)
-'''
-@app.route('/parkings')
-def API_parkings():
-	# checkIfFull API integration for 4 parkings "relai"
-	coords = request.args.get('fromPlace','')
-	parkings = []
-	try :
-		searchObj = re.search( r'\(\s*(-?[0-9]+\.[0-9]+)\s*,\s*(-?[0-9]+\.[0-9]+)\s*\)\s*', coords)
-		x = float(searchObj.group(1))
-		y = float(searchObj.group(2))
-	except:
-		logger.warn("API_parkings regex fail !")
-	if x:
-		parkings = closestParking(x,y)
-	return jsonify(results=parkings)
 
 if __name__ == '__main__':
 	logger.info("Starting ...")
 	if not URL_OPEN_TRIP_PLANNER:
 		logger.error("Please specify URL_OPEN_TRIP_PLANNER in config.py")
-	app.run(debug = True, host='0.0.0.0',port=8080)
+	if DEBUG:
+		app.run(host='0.0.0.0',port=8080,debug=True)
+	else:
+		app.run(host='0.0.0.0',port=8080)
 
 '''
 API du Serveur:

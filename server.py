@@ -19,12 +19,10 @@ def running():
 def sysinfo():
 	infos = ""
 	if 'linux' in sys.platform:
-		import linux_sysinfo as sysinfo
-		infos = sysinfo.memory_available()
-		logger.debug(infos)
+		# todo
 	infos_remote = ""
 	try:
-		infos_remote = requests.get("%s/ws/" % URL_OPEN_TRIP_PLANNER).text
+		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text
 	except:
 		infos_remote = "Not Responding"
 		logger.warn("OTP server %s" % infos_remote)

@@ -17,8 +17,8 @@ def sysinfo():
 	infos = ""
 	if 'linux' in sys.platform:
 		import psutil
-		infos += "CPU : %d%%\n" % (psutil.cpu_percent())
-		infos += "Mem : %d%%\n" % (psutil.virtual_memory()[2])
+		infos += "CPU : %d%%<br />" % (psutil.cpu_percent())
+		infos += "Mem : %d%%<br />" % (psutil.virtual_memory()[2])
 	infos_remote = ""
 	try:
 		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text
@@ -45,8 +45,8 @@ def API_parkings():
 		y = float(searchObj.group(2))
 	except:
 		logger.warn("API_parkings regex fail !")
-	if x:
-		parkings = closestParking(x,y)
+		return "Erreur argument !"
+	parkings = closestParking(x,y)
 	return jsonify(results=parkings)
 
 

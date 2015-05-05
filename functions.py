@@ -1,4 +1,5 @@
 ﻿import MySQLdb as mdb
+# Care MySQLdb output is latin1 instead of utf8
 from math import sqrt
 from config import *
 import json
@@ -10,7 +11,7 @@ def closestParking(lat,lon,nb_parking=3):
 	parkings = getAllParkings()
 	parks_ordo = []
 	for park in parkings:
-		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1],'posx': park[2],'posy': park[3]})
+		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0].encode('utf8'),'name': park[1].encode('utf8'),'posx': park[2].encode('utf8'),'posy': park[3].encode('utf8')})
 	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
 	return parks_ordo[:nb_parking]
 

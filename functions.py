@@ -6,13 +6,14 @@ import json
 import pprint
 import sys
 import re
+import logger
 
 def closestParking(lat,lon,nb_parking=3):
 	lat,lon = float(lat),float(lon)
 	parkings = getAllParkings()
 	parks_ordo = []
 	for park in parkings:
-		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(long-park[3])**2), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
+		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
 	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
 	return parks_ordo[:nb_parking]
 

@@ -1,4 +1,4 @@
-import MySQLdb as mdb
+﻿import MySQLdb as mdb
 from math import sqrt
 from config import *
 

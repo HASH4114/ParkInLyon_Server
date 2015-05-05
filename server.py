@@ -1,4 +1,4 @@
-from config import *
+﻿from config import *
 from functions import *
 import logger
 import sys

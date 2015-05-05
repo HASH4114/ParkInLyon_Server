@@ -1,6 +1,6 @@
 ﻿import MySQLdb as mdb
 # Care MySQLdb output is latin1 (iso-8859-1) instead of utf8
-from math import sqrt
+from math import sqrt,sin,cos,atan2
 from config import *
 import json
 import pprint
@@ -13,13 +13,19 @@ def closestParking(lat,lon,nb_parking=3):
 	parkings = getAllParkings()
 	parks_ordo = []
 	for park in parkings:
-		parks_ordo.append({'dist': sqrt((lat-park[2])**2+(lon-park[3])**2), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
+		parks_ordo.append({'dist': diff_km(lat,lon,park[2],park[3]), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
 	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
 	return parks_ordo[:nb_parking]
 
+# calcul diff lat lon as km
+def diff_km(lat_0,lon_0,lat_1,lon_1):
+	dlon = lon_1-lon_0
+	dlat = lat_1-lat_0
+	a = (sin(dlat/2)**2) + cos(lat_0) * cos(lat_1) * (sin(dlon/2)**2)
+	c = 2 * atan2(sqrt(a),sqrt(1-a))
+	return 6373 * c
 
-
-#return an array
+# return an array
 def getAllParkings():
 	try:
 		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)

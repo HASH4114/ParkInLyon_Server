@@ -4,6 +4,7 @@ import sys
 import requests
 from flask import Flask,jsonify, request
 import json
+import functions
 
 app = Flask(__name__)
 
@@ -20,7 +21,7 @@ def sysinfo():
 	infos = ""
 	if 'linux' in sys.platform:
 		# todo
-	infos_remote = ""
+		infos_remote = ""
 	try:
 		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text
 	except:
@@ -32,10 +33,11 @@ def sysinfo():
 @app.route('/parkings/list')
 def listParking():
 	
-	parkingList = closestParking(departurePoint, nbParking)
+	point = request.args.get('fromPlace', '')
+	lat = float(departurePoint.split(',')[0])
+	lon = float(departurePoint.split(',')[1])
 	
-	a = json.dumps({'name':"Parking bidon", 'lat': 48.11022, 'lon': -1.66929, 'place': 43})
-	return a
+	return closestParking(lat,lon)
 	
 	
 @app.route('/plan')
@@ -48,15 +50,14 @@ def route():
 	endPoint = request.args.get('toPlace', '')
 	endLat = float(departurePoint.split(',')[0])
 	endLon = float(departurePoint.split(',')[1])
-	nbParking = request.args.get('numIti', '')
 
-	parkingList = closestParking(departurePoint, nbParking)
+	parkingList = functions.closestParking(depLat, depLon)
 	
 	for parking in parkingList:
-		park_iti = sendRequest(departurePoint, parking, "toPark")
-		dest_iti = sendRequest(parking, endPoint)
-		#Merge and put in data
-		itiList.append(merge(park_iti, dest_iti))
+		park_iti = sendRequest(depLat, depLon, parking[2], parking[3], "toPark")
+		dest_iti = sendRequest(parking[2], parking[3], endLat, endLon)
+		
+		itiList.append(functions.merge([park_iti, dest_iti]))
 	
 	#Compare the itineraries
 	
@@ -64,7 +65,7 @@ def route():
 	
 
 	
-def sendRequest(startPoint, endPoint, requestType = "toDest"):
+def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
 	
 	headers = {'Accept': 'application/json'}
 	url = "http://92.222.74.70/otp/routers/default/plan?fromPlace=" + str(start[lat]) + ",%20" + str(start[lon]) + "&toPlace=" + str(end[lat]) + ",%20" + str(end[lon])

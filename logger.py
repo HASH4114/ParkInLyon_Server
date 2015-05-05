@@ -4,7 +4,10 @@ from config import *
 
 def debug(msg):
 	"""Writes the message to the log file using the ``DEBUG`` level."""
-	write(msg, 'DEBUG')
+	if DEBUG:
+		write(msg, 'DEBUG',also_console=True)
+	else:
+		write(msg, 'DEBUG')
 
 def info(msg, also_console=True):
 	"""Writes the message to the log file using the ``INFO`` level.

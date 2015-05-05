@@ -1,10 +1,12 @@
-from config import *
+﻿from config import *
+from functions import *
 import logger
 import sys
 import requests
-from flask import Flask,jsonify, request
 import json
 import functions
+import re
+from flask import Flask,request,jsonify
 
 app = Flask(__name__)
 
@@ -22,6 +24,10 @@ def sysinfo():
 	if 'linux' in sys.platform:
 		# todo
 		infos_remote = ""
+
+		import psutil
+		infos += "CPU : %d%%\n" % (psutil.cpu_percent())
+		infos += "Mem : %d%%\n" % (psutil.virtual_memory()[2])
 	try:
 		infos_remote = requests.get("%s" % URL_OPEN_TRIP_PLANNER).text
 	except:
@@ -85,21 +91,36 @@ def show_user_profile(username):
 	# API OTP : 
 	return 'User %s' % username
 
+'''Car itinerary to the closest non-full parking:
+	/parkings?fromPlace=(lat,lon)
+Params :
+	fromPlace
+	Optionnal :
+		checkIfFull (default to yes, ex for no : the client wants to find a parking for later)
+'''
+@app.route('/parkings')
+def API_parkings():
+	# checkIfFull API integration for 4 parkings "relai"
+	coords = request.args.get('fromPlace','')
+	parkings = []
+	try :
+		searchObj = re.search( r'\(\s*(-?[0-9]+\.[0-9]+)\s*,\s*(-?[0-9]+\.[0-9]+)\s*\)\s*', coords)
+		x = float(searchObj.group(1))
+		y = float(searchObj.group(2))
+	except:
+		logger.warn("API_parkings regex fail !")
+	if x:
+		parkings = closestParking(x,y)
+	return jsonify(results=parkings)
 
 if __name__ == '__main__':
 	logger.info("Starting ...")
 	if not URL_OPEN_TRIP_PLANNER:
 		logger.error("Please specify URL_OPEN_TRIP_PLANNER in config.py")
-	app.run(debug=True, host='0.0.0.0',port=8080)
+	app.run(host='0.0.0.0',port=8080)
 
 '''
 API du Serveur:
 
 
 
-
-
-
-
-
-'''

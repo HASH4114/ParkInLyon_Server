@@ -58,12 +58,10 @@ def searchParking():
 @app.route('/plan')
 def route():
 	itiList = []
-	
 	departurePoint = request.args.get('fromPlace', '')
 	depLat,depLon = parse_commas(departurePoint)
 	endPoint = request.args.get('toPlace', '')
 	endLat,endLon = parse_commas(endPoint)
-
 	if 'err' == depLat or 'err' == endLat:
 		return "Erreur Argument !"
 	parkingList = functions.closestParking(depLat, depLon)
@@ -72,6 +70,19 @@ def route():
 		dest_iti = sendRequest(parking['posx'], parking['posy'], endLat, endLon)
 		itiList.append(functions.merge([park_iti, dest_iti]))
 	#Compare the itineraries
+	return jsonify(results=itiList)
+
+@app.route('/direct_iti')
+def direct_iti():
+	departurePoint = request.args.get('fromPlace', '')
+	depLat,depLon = parse_commas(departurePoint)
+	endPoint = request.args.get('toPlace', '')
+	endLat,endLon = parse_commas(endPoint)
+	if 'err' == depLat or 'err' == endLat:
+		return "Erreur Argument !"
+	itiList = []
+	iti = sendRequest(depLat, depLon, endLat, endLon, "toPark")
+	itiList.append(functions.merge([iti]))
 	return jsonify(results=itiList)
 
 
@@ -83,4 +94,3 @@ if __name__ == '__main__':
 		app.run(host='0.0.0.0',port=8080,debug=True)
 	else:
 		app.run(host='0.0.0.0',port=8080,threaded=True)
-

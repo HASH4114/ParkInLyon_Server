@@ -44,10 +44,8 @@ def getAllParkings():
 		cur = con.cursor()
 		cur.execute("SELECT id, name, posx, posy,address,town,nbPlaces FROM parking")
 		return cur.fetchall()
-
 	except mdb.Error, e:
 		logger.error("Error %d: %s" % (e.args[0],e.args[1]))
-
 	finally:
 		if con:
 			con.close()
@@ -62,13 +60,11 @@ def parse_commas(string_param):
 		return ['err','err']
 
 def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
-
         headers = {'Accept': 'application/json'}
         params = { "fromPlace": str(depLat) + "," + str(depLon), "toPlace": str(endLat) + "," + str(endLon)}
         if requestType == "toPark":
                 params["mode"] = "CAR"
         url = URL_OPEN_TRIP_PLANNER+"routers/default/plan"
-
         return requests.get(url, headers=headers, params = params).text
 
 
@@ -76,16 +72,13 @@ def merge(tabJson):
 	#Main objects
 	imported_json = []
 	merged_routes_json = []
-
 	#List of points part
 	list_points = []
 	list_points_object={}
-
 	#Parts of itinerary just thoughtlessly copied
 	leg=[]
 	legs=[]
 	legs_object = {}
-
 	#Route_summary part
 	route_summary = []
 	route_summary_object= {}
@@ -93,26 +86,17 @@ def merge(tabJson):
 	end_point = {}
 	total_distance = {}
 	total_time = {}
-
 	temp_distance = 0
 	temp_time = 0
 	temp_name_file=""
-
 	for i in range(0,len(tabJson)):
 		imported_json.append(json.loads(tabJson[i]))
-
-
 	for i in range(0, len(imported_json)):
-
-
 		temp_itinerary = imported_json[i]["plan"]["itineraries"][0]
-
-
 		for j in range(0,len(temp_itinerary["legs"])) :
 			leg = temp_itinerary["legs"][j]
 			temp_distance += leg["distance"]
 			legs.append(leg)
-
 			if leg["mode"] in ("BUS", "SUBWAY", "TRAM"):
 				if j == 1 :
 					list_points.append({"lat": temp_itinerary["legs"][0]["from"]["lat"], "lon":temp_itinerary["legs"][0]["from"]["lon"],"mode":leg["mode"]})
@@ -123,13 +107,7 @@ def merge(tabJson):
 					list_points.append({"lat": step["lat"], "lon":step["lon"], "mode":leg["mode"]})
 				list_points.append({"lat": leg["to"]["lat"], "lon": leg["to"]["lon"], "mode" : leg["mode"]})
 		temp_time += temp_itinerary["duration"]
-
-		
-
-
-
 	#Filling the different variables with the merged values
-
 	#ROUTE SUMMARY
 	total_distance["total_distance"] = temp_distance
 	total_time["total_time"] = temp_time
@@ -139,17 +117,14 @@ def merge(tabJson):
 	route_summary.append(end_point)
 	route_summary.append(total_time)
 	route_summary.append(total_distance)
-
 	#ALL POINTS
 	legs_object["legs"] = legs
 	route_summary_object["route_summary"] = route_summary
 	list_points_object["list_points"] = list_points
-
 	#Final JSON
 	merged_routes_json.append(legs_object)
 	merged_routes_json.append(list_points_object)
 	merged_routes_json.append(route_summary_object)
-
 	#Registering
 	return merged_routes_json
 	

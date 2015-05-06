@@ -108,11 +108,11 @@ def merge(tabJson):
 			if leg["mode"] == ("BUS" or "SUBWAY" or "TRAM"):
 				if j == 1 :
 					list_points.append({"lat": temp_itinerary["legs"][0]["from"]["lat"], "long":temp_itinerary["legs"][0]["from"]["lon"]})
-				list_points.append({"lat": leg["to"]["lat"], "long":leg["to"]["lon"]})
+				list_points.append({"lat": leg["to"]["lat"], "lon":leg["to"]["lon"],"mode":leg["mode"]})
 			elif leg ["mode"]== ("WALK" or "CAR"):
 				for k in range (0, len(leg["steps"])):
 					step = leg["steps"][k]
-					list_points.append({"lat": step["lat"], "long":step["lon"]})  	
+					list_points.append({"lat": step["lat"], "lon":step["lon"], "mode":leg["mode"]})  	
 		temp_time += temp_itinerary["duration"]
 
 		

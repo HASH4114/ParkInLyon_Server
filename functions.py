@@ -3,6 +3,7 @@
 from math import sqrt,sin,cos,atan2,pi
 from config import *
 import time
+import requests
 import json
 import pprint
 import sys
@@ -61,15 +62,14 @@ def parse_commas(string_param):
 		return ['err','err']
 
 def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
-	
-	headers = {'Accept': 'application/json'}
-	params = {'fromPlace': str(start[lat]) + ",%20" + str(start[lon]), 'toPlace': str(end[lat]) + ",%20" + str(end[lon])}
-	url = "http://92.222.74.70/otp/routers/default/plan"
-	
-	if requestType == "toPark":
-		params['mode'] = 'CAR'
-	
-	return json.loads(requests.get(url,params=params, headers=headers).text)
+
+        headers = {'Accept': 'application/json'}
+        params = { "fromPlace": str(depLat) + "," + str(depLon), "toPlace": str(endLat) + "," + str(endLon)}
+        if requestType == "toPark":
+                params["mode"] = "CAR"
+        url = URL_OPEN_TRIP_PLANNER+"routers/default/plan"
+
+        return requests.get(url, headers=headers, params = params).text
 
 
 def merge(tabJson):
@@ -118,7 +118,7 @@ def merge(tabJson):
 				if j == 1 :
 					list_points.append({"lat": temp_itinerary["legs"][0]["from"]["lat"], "lon":temp_itinerary["legs"][0]["from"]["lon"],"mode":leg["mode"]})
 				list_points.append({"lat": leg["to"]["lat"], "lon":leg["to"]["lon"],"mode":leg["mode"]})
-			elif leg ["mode"]== ("WALK" or "CAR"):
+			elif leg ["mode"] in ("WALK","CAR"):
 				for k in range (0, len(leg["steps"])):
 					step = leg["steps"][k]
 					list_points.append({"lat": step["lat"], "lon":step["lon"], "mode":leg["mode"]})
@@ -155,3 +155,16 @@ def merge(tabJson):
 	return merged_routes_json
 	
 
+def get_parking_by_name(park_name):
+	con = None
+	try:
+		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)
+		cur = con.cursor()
+		cur.execute("SELECT id, name, posx, posy,address,town,nbPlaces FROM parking WHERE LOWER(name) LIKE '%%%s%%'" % (park_name.replace("'","").lower()))
+		parkings = cur.fetchall()
+		return [{'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3],'address': park[4],'town': park[5], 'nbPlaces': park[6]} for park in parkings]
+	except mdb.Error, e:
+		logger.error("Error %d: %s" % (e.args[0],e.args[1]))
+	finally:
+		if con:
+			con.close()

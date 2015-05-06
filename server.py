@@ -41,7 +41,14 @@ def listParking():
 	return jsonify(results=parkings)
 
 	
-	
+@app.route('/search')
+def searchParking():
+	park_name = request.args.get('parking','')
+	if park_name == '':
+		return "Erreur Argument"
+	return jsonify(results=get_parking_by_name(park_name))
+
+
 @app.route('/plan')
 def route():
 	itiList = []
@@ -62,16 +69,6 @@ def route():
 		itiList.append(functions.merge([park_iti, dest_iti]))
 	#Compare the itineraries
 	return jsonify(results=itiList)
-
-def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
-	
-	headers = {'Accept': 'application/json'}
-	params = { "fromPlace": str(depLat) + "," + str(depLon), "toPlace": str(endLat) + "," + str(endLon)}
-	if requestType == "toPark":
-		params["mode"] = "car"	
-	url = "http://92.222.74.70/otp/routers/default/plan"
-
-	return requests.get(url, headers=headers, params = params).text
 
 
 if __name__ == '__main__':

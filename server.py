@@ -5,6 +5,7 @@ import sys
 import requests
 import json
 import functions
+import time
 from flask import Flask,request,jsonify
 
 app = Flask(__name__)
@@ -38,15 +39,20 @@ def listParking():
 	if x == 'err':
 		return "Erreur Argument !"
 	parkings = closestParking(x,y)
+	if len(parkings) == 0:
+		return "[]"
 	return jsonify(results=parkings)
 
-	
+
 @app.route('/search')
 def searchParking():
 	park_name = request.args.get('parking','')
 	if park_name == '':
 		return "Erreur Argument"
-	return jsonify(results=get_parking_by_name(park_name))
+	results = get_parking_by_name(park_name)
+	if len(results) == 0:
+		return "[]"
+	return jsonify(results=results)
 
 
 @app.route('/plan')
@@ -56,13 +62,11 @@ def route():
 	departurePoint = request.args.get('fromPlace', '')
 	depLat,depLon = parse_commas(departurePoint)
 	endPoint = request.args.get('toPlace', '')
-	endLat,endLon = parse_commas(departurePoint)
+	endLat,endLon = parse_commas(endPoint)
 
 	if 'err' == depLat or 'err' == endLat:
 		return "Erreur Argument !"
-
 	parkingList = functions.closestParking(depLat, depLon)
-	
 	for parking in parkingList:
 		park_iti = sendRequest(depLat, depLon, parking['posx'], parking['posy'], "toPark")
 		dest_iti = sendRequest(parking['posx'], parking['posy'], endLat, endLon)
@@ -78,5 +82,5 @@ if __name__ == '__main__':
 	if DEBUG:
 		app.run(host='0.0.0.0',port=8080,debug=True)
 	else:
-		app.run(host='0.0.0.0',port=8080)
+		app.run(host='0.0.0.0',port=8080,threaded=True)
 

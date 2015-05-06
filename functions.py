@@ -98,15 +98,14 @@ def merge(tabJson):
 	temp_time = 0
 	temp_name_file=""
 
-
-	for i in range(1,len(tabJson)):
+	for i in range(0,len(tabJson)):
 		imported_json.append(json.loads(tabJson[i]))
 
 
 	for i in range(0, len(imported_json)):
 
 
-		temp_itinerary = imported_json[i]["plan"]["itineraries"][1]
+		temp_itinerary = imported_json[i]["plan"]["itineraries"][0]
 
 
 		for j in range(0,len(temp_itinerary["legs"])) :

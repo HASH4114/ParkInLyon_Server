@@ -129,14 +129,14 @@ def merge(tabJson):
 	return merged_routes_json
 	
 
-def get_parking_by_name(park_name):
+def get_parking_by_name(park_name,lat,lon):
 	con = None
 	try:
 		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)
 		cur = con.cursor()
 		cur.execute("SELECT id, name, posx, posy,address,town,nbPlaces FROM parking WHERE LOWER(name) LIKE '%%%s%%'" % (park_name.replace("'","").lower()))
 		parkings = cur.fetchall()
-		return [{'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3],'address': park[4],'town': park[5], 'nbPlaces': park[6]} for park in parkings]
+		return [{'id': park[0],'dist': diff_km(lat,lon,park[2],park[3]),'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3],'address': park[4],'town': park[5], 'nbPlaces': park[6]} for park in parkings]
 	except mdb.Error, e:
 		logger.error("Error %d: %s" % (e.args[0],e.args[1]))
 	finally:

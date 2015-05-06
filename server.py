@@ -47,9 +47,11 @@ def listParking():
 @app.route('/search')
 def searchParking():
 	park_name = request.args.get('parking','')
-	if park_name == '':
+	coords = request.args.get('fromPlace','')
+	x,y = parse_commas(coords)
+	if park_name == '' or x == 'err':
 		return "Erreur Argument"
-	results = get_parking_by_name(park_name)
+	results = get_parking_by_name(park_name,x,y)
 	if len(results) == 0:
 		return "[]"
 	return jsonify(results=results)
@@ -69,7 +71,6 @@ def route():
 		park_iti = sendRequest(depLat, depLon, parking['posx'], parking['posy'], "toPark")
 		dest_iti = sendRequest(parking['posx'], parking['posy'], endLat, endLon)
 		itiList.append(functions.merge([park_iti, dest_iti]))
-	#Compare the itineraries
 	return jsonify(results=itiList)
 
 @app.route('/direct_iti')

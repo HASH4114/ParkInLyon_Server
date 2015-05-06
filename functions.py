@@ -142,6 +142,6 @@ def merge(tabJson):
 	merged_routes_json.append(route_summary_object)
 
 	#Registering
-	return json.dumps(merged_routes_json)
+	return merged_routes_json
 	
 

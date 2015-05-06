@@ -57,14 +57,11 @@ def route():
 	parkingList = functions.closestParking(depLat, depLon)
 	
 	for parking in parkingList:
-		park_iti = sendRequest(depLat, depLon, parking[2], parking[3], "toPark")
-		dest_iti = sendRequest(parking[2], parking[3], endLat, endLon)
-		
+		park_iti = sendRequest(depLat, depLon, parking['posx'], parking['posy'], "toPark")
+		dest_iti = sendRequest(parking['posx'], parking['posy'], endLat, endLon)
 		itiList.append(functions.merge([park_iti, dest_iti]))
-	
 	#Compare the itineraries
-	
-	return jsonify(itiList)
+	return jsonify(results=itiList)
 
 def sendRequest(depLat, depLon, endLat, endLon, requestType = "toDest"):
 	

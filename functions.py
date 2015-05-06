@@ -2,20 +2,29 @@
 # Care MySQLdb output is latin1 (iso-8859-1) instead of utf8
 from math import sqrt,sin,cos,atan2,pi
 from config import *
+import time
 import json
 import pprint
 import sys
 import re
 import logger
 
+parkings_cache = []
+last_update = 0
+
 def closestParking(lat,lon,nb_parking=3):
 	lat,lon = float(lat),float(lon)
-	parkings = getAllParkings()
-	parks_ordo = []
-	for park in parkings:
-		parks_ordo.append({'dist': diff_km(lat,lon,park[2],park[3]), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3]})
-	parks_ordo = sorted(parks_ordo, key=lambda k: k['dist'])
-	return parks_ordo[:nb_parking]
+	global parkings_cache
+	global last_update
+	if len(parkings_cache) == 0 or (time.time() - last_update) > 10*60:
+		logger.debug("Load parkings from DB")
+		parkings = getAllParkings()
+		parks_ordo = []
+		for park in parkings:
+			parks_ordo.append({'dist': diff_km(lat,lon,park[2],park[3]), 'id': park[0],'name': park[1].decode('iso-8859-1'),'posx': park[2],'posy': park[3],'address': park[4],'town': park[5], 'nbPlaces': park[6]})
+		parkings_cache = sorted(parks_ordo, key=lambda k: k['dist'])
+		last_update = time.time()
+	return parkings_cache[:nb_parking]
 
 # calcul diff lat lon as km
 def diff_km(lat_0,lon_0,lat_1,lon_1):
@@ -32,7 +41,7 @@ def getAllParkings():
 	try:
 		con = mdb.connect('localhost', MYSQL_user, MYSQL_password, MYSQL_database)
 		cur = con.cursor()
-		cur.execute("SELECT id, name, posx, posy FROM parking")
+		cur.execute("SELECT id, name, posx, posy,address,town,nbPlaces FROM parking")
 		return cur.fetchall()
 
 	except mdb.Error, e:
